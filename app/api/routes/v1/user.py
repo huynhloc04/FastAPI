@@ -1,30 +1,68 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi.security import OAuth2PasswordRequestForm
+from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.crud.user import create_user, delete_user, get_user, update_user
 from app.db.session import get_session
-from app.models.base import DeleteResponse
-from app.models.user import UserCreate, UserResponse, UserUpdate
-
-router = APIRouter(
-    prefix="/users",
-    tags=["users"],
+from app.models.user import User, UserInput, UserResponse, TokenSchema
+from app.crud.user import create_user, get_user_by_email, get_user
+from app.core.deps import get_current_user
+from app.core.security import (
+    get_hashed_password,
+    verify_password,
+    create_access_token,
+    create_refresh_token,
 )
+
+router = APIRouter(prefix="/users", tags=["users"])
+
+
+@router.post("/signup", response_model=UserResponse, summary="Create a new user.")
+async def signup(
+    data: UserInput, session: AsyncSession = Depends(get_session)
+) -> UserResponse:
+    #   Querying database to check user already exist
+    user = await get_user_by_email(session=session, email=data.email)
+    if user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User with this email already exist",
+        )
+    data.password = get_hashed_password(data.password)
+    return await create_user(session=session, user=data)
 
 
 @router.post(
-    "/",
-    summary="Create a new user.",
-    status_code=status.HTTP_201_CREATED,
-    response_model=UserResponse,
+    "/login",
+    response_model=TokenSchema,
+    summary="Create access and refresh tokens for user",
 )
-async def create_user_route(
-    data: UserCreate,
-    db: AsyncSession = Depends(get_session),
-):
-    return await create_user(session=db, user=data)
+async def login(
+    data: OAuth2PasswordRequestForm = Depends(),
+    session: AsyncSession = Depends(get_session),
+) -> TokenSchema:
+    user = await get_user_by_email(session=session, email=data.username)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect email or password",
+        )
+    #   Verify user with password
+    if not verify_password(data.password, user.password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect email or password",
+        )
+    return TokenSchema(
+        access_token=create_access_token(user.email),
+        refresh_token=create_refresh_token(user.email),
+    )
+
+
+@router.get("/me", response_model=User, summary="Get current user.")
+async def get_me(user: User = Depends(get_current_user)):
+    return user
 
 
 @router.get(
@@ -35,28 +73,3 @@ async def create_user_route(
 )
 async def get_user_route(id: UUID, db: AsyncSession = Depends(get_session)):
     return await get_user(session=db, id=id)
-
-
-@router.patch(
-    "/{id}",
-    summary="Update a user.",
-    status_code=status.HTTP_200_OK,
-    response_model=UserResponse,
-)
-async def update_user_route(
-    id: UUID,
-    data: UserUpdate,
-    db: AsyncSession = Depends(get_session),
-):
-    return await update_user(session=db, id=id, user=data)
-
-
-@router.delete(
-    "/{id}",
-    summary="Delete a user.",
-    status_code=status.HTTP_200_OK,
-    response_model=DeleteResponse,
-)
-async def delete_user_route(id: UUID, db: AsyncSession = Depends(get_session)):
-    deleted = await delete_user(session=db, id=id)
-    return DeleteResponse(deleted=deleted)

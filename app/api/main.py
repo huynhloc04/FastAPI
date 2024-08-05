@@ -14,7 +14,7 @@ def get_application():
         version=settings.VERSION,
         docs_url="/docs",
     )
-    app.include_router(api_router, prefix="/api/v1")
+    app.include_router(api_router, prefix="/api")
     return app
 
 

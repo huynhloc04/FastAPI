@@ -1,10 +1,7 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import Field, PostgresDsn, validator
+from pydantic import Field, PostgresDsn
 from functools import cached_property
-from pydantic import (
-    PostgresDsn,
-    computed_field
-)
+from pydantic import PostgresDsn, computed_field
 
 
 class Settings(BaseSettings):
@@ -13,7 +10,7 @@ class Settings(BaseSettings):
     )
 
     VERSION: str = Field("0.0.1")
-    PROJECT_NAME: str = Field("Ultimate FastAPI Project Setup")
+    PROJECT_NAME: str = Field("Authorization with FastAPI.")
     POSTGRES_USER: str = Field("postgres", env="POSTGRES_USER")
     POSTGRES_PASSWORD: str = Field("postgres", env="POSTGRES_PASSWORD")
     POSTGRES_DB: str = Field("postgres", env="POSTGRES_DB")
@@ -21,6 +18,13 @@ class Settings(BaseSettings):
     POSTGRES_PORT: int = Field(5432, env="POSTGRES_PORT")
     POSTGRES_ECHO: bool = Field(False, env="POSTGRES_ECHO")
     POSTGRES_POOL_SIZE: int = Field(10, env="POSTGRES_POOL_SIZE")
+
+    ACCESS_TOKEN_EXPIRE_MINUTES: str
+    REFRESH_TOKEN_EXPIRE_MINUTES: str
+    ALGORITHM: str
+
+    JWT_SECRET_KEY: str
+    JWT_REFRESH_SECRET_KEY: str
 
     @computed_field
     @cached_property
@@ -36,5 +40,5 @@ class Settings(BaseSettings):
             )
         )
 
-settings = Settings()
 
+settings = Settings()

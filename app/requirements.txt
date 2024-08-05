@@ -6,3 +6,4 @@ gunicorn
 asyncpg
 SQLAlchemy
 uuid7
+passlib
