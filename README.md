@@ -1,3 +1,3 @@
-# Ultimate FastAPI Project Setup
+# Add JWT Authentication in FastAPI
 
-See the Medium article [The Ultimate FastAPI Project Setup: FastAPI, Async Postgres, SQLModel, Pytest and Docker]() for more information.
+Reference: https://www.freecodecamp.org/news/how-to-add-jwt-authentication-in-fastapi/
