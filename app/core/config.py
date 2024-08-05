@@ -11,6 +11,10 @@ class Settings(BaseSettings):
 
     VERSION: str = Field("0.0.1")
     PROJECT_NAME: str = Field("Authorization with FastAPI.")
+
+    HOST: str
+    PORT: str
+
     POSTGRES_USER: str = Field("postgres", env="POSTGRES_USER")
     POSTGRES_PASSWORD: str = Field("postgres", env="POSTGRES_PASSWORD")
     POSTGRES_DB: str = Field("postgres", env="POSTGRES_DB")
@@ -25,6 +29,11 @@ class Settings(BaseSettings):
 
     JWT_SECRET_KEY: str
     JWT_REFRESH_SECRET_KEY: str
+
+    #   Single Sign On (SSO)
+    GOOGLE_CLIENT_ID: str
+    GOOGLE_CLIENT_SECRET: str
+    SECRET_KEY: str
 
     @computed_field
     @cached_property

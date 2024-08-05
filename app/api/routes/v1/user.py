@@ -1,12 +1,10 @@
-from uuid import UUID
-
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.db.session import get_session
 from app.models.user import User, UserInput, UserResponse, TokenSchema
-from app.crud.user import create_user, get_user_by_email, get_user
+from app.crud.user import create_user, get_user_by_email
 from app.core.deps import get_current_user
 from app.core.security import (
     get_hashed_password,
@@ -55,21 +53,11 @@ async def login(
             detail="Incorrect email or password",
         )
     return TokenSchema(
-        access_token=create_access_token(user.email),
-        refresh_token=create_refresh_token(user.email),
+        access_token=create_access_token(subject=user.email),
+        refresh_token=create_refresh_token(subject=user.email),
     )
 
 
 @router.get("/me", response_model=User, summary="Get current user.")
 async def get_me(user: User = Depends(get_current_user)):
     return user
-
-
-@router.get(
-    "/{id}",
-    summary="Get a user.",
-    status_code=status.HTTP_200_OK,
-    response_model=UserResponse,
-)
-async def get_user_route(id: UUID, db: AsyncSession = Depends(get_session)):
-    return await get_user(session=db, id=id)

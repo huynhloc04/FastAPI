@@ -8,19 +8,16 @@ from sqlmodel import delete, select
 from app.models.user import User, UserCreate, UserUpdate
 
 
+class DuplicateError(Exception):
+    pass
+
+
 async def create_user(session: AsyncSession, user: UserCreate) -> User:
     db_user = User(**user.dict())
-    try:
-        session.add(db_user)
-        await session.commit()
-        await session.refresh(db_user)
-        return db_user
-    except IntegrityError:
-        session.rollback()
-        raise HTTPException(
-            status_code=409,
-            detail="User already exists",
-        )
+    session.add(db_user)
+    await session.commit()
+    await session.refresh(db_user)
+    return db_user
 
 
 async def get_user(session: AsyncSession, id: UUID) -> User:

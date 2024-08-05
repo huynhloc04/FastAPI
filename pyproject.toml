@@ -17,6 +17,7 @@ passlib = "^1.7.4"
 python-jose = "^3.3.0"
 fastapi-events = "^0.11.1"
 alembic = "^1.13.2"
+fastapi-sso = "^0.15.0"
 
 
 [build-system]
